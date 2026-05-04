@@ -14,7 +14,7 @@ sudo apt update && sudo apt upgrade -y
 
 # 2. Install All Essential Packages
 echo "=== Installing Server Packages ==="
-sudo apt install -y curl wget git htop neofetch vim nano unzip \
+sudo apt install -y curl wget git htop vim nano unzip \
                     xrdp xorgxrdp dbus-x11 \
                     openssh-server ufw fail2ban \
                     powertop tuned tuned-utils cpufrequtils ethtool
@@ -59,16 +59,6 @@ sudo systemctl restart fail2ban
 echo "=== Power Optimizations ==="
 
 sudo tuned-adm profile balanced
-
-# CPU Governor
-echo "schedutil" | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-
-sudo tee /etc/rc.local > /dev/null <<'EOF'
-#!/bin/bash
-echo "schedutil" | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-exit 0
-EOF
-sudo chmod +x /etc/rc.local
 
 # Disable suspend/hibernate
 sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
