@@ -1,0 +1,65 @@
+#!/bin/bash
+# =============================================
+# Xubuntu 26.04 LTS First-Run Server Setup
+# Server prep + xrdp Remote Desktop
+# =============================================
+
+echo "=== Updating System ==="
+sudo apt update && sudo apt upgrade -y
+
+echo "=== Installing Server Essentials ==="
+sudo apt install -y curl wget git htop neofetch vim nano \
+                    xrdp xorgxrdp dbus-x11 ufw fail2ban \
+                    openssh-server
+
+echo "=== Setting up xrdp ==="
+sudo adduser xrdp ssl-cert
+sudo systemctl enable --now xrdp
+
+echo "=== Firewall ==="
+sudo ufw allow 22/tcp comment "SSH"
+sudo ufw allow 3389/tcp comment "xrdp"
+sudo ufw --force enable
+
+echo "=== Fail2Ban Protection ==="
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local 2>/dev/null || true
+
+sudo tee -a /etc/fail2ban/jail.local > /dev/null <<EOF
+
+[sshd]
+enabled = true
+maxretry = 4
+bantime = 1h
+
+[xrdp]
+enabled = true
+port = 3389
+filter = xrdp
+logpath = /var/log/xrdp.log
+maxretry = 5
+bantime = 1h
+EOF
+
+sudo systemctl restart fail2ban
+
+echo "=== Final Setup ==="
+sudo systemctl enable --now ssh
+
+cat >> ~/.bashrc << 'EOF'
+alias update='sudo apt update && sudo apt upgrade -y'
+alias ll='ls -la'
+echo "=== Xubuntu 26.04 Server Ready ==="
+EOF
+
+echo ""
+echo "=================================================="
+echo "✅ Xubuntu 26.04 Server Setup Complete!"
+echo "=================================================="
+echo "RDP IP: $(hostname -I | awk '{print $1}')"
+echo "SSH  IP: $(hostname -I | awk '{print $1}')"
+echo ""
+echo "Next:"
+echo "1. Reboot: sudo reboot"
+echo "2. On login screen → Choose 'Xfce Session'"
+echo "3. Connect via Windows Remote Desktop"
+echo "=================================================="
